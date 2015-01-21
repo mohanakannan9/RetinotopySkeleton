@@ -302,14 +302,3 @@ main $@
 
 
 
-# check for same number of files
-
-
-
-
-
-
-
-
-
-
