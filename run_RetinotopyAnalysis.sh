@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SCRIPT_NAME=$0
+MCR_DIR=$1
+VAR_FILE=$2
+
+echo "SCRIPT_NAME: ${SCRIPT_NAME}"
+echo "MCR_DIR: ${MCR_DIR}"
+echo "VAR_FILE: ${VAR_FILE}"

@@ -79,27 +79,36 @@ usage() {
 	echo "		--subject=<subject-id>"
 	echo "		: id of subject for the data being processed"
 	echo ""
-	echo "		--stimulus-location-file=<path>"
-	echo "		: path to stimulus location file"
+	echo "		--movie-files=<file-list>"
+	echo "		: @ symbol separated list of movie files (QuickTime files) used as stimuli for the retinotopy task"
 	echo ""
 	echo "		--image-files=<file-list>"
 	echo "		: @ symbol separated list of minimally preprocessed functional \(fMRI\) image files"
 	echo ""
-	echo "		--offset-files=<file-list>"
-	echo "		: @ symbol separated list of behavioral files from which time offsets can be obtained"
+	echo "		--behavior-files=<file-list>"
+	echo "		: @ symbol separated list of behavior files from which time offsets can be obtained"
 	echo ""
 	echo "		Notes:"
-	echo "		  1. There should be the same number of offset files specified as there are image files specified."
-	echo "		  2. There should be a one-to-one correspondence between the image files and the offset files."
-	echo "		     For example, if the image files are: run1.nii.gz@run2.nii.gz@run3.nii.gz, then the corresponding"
-	echo "		     offset files would be specified something like: run1_info.m@run2_info.m@run3_info.m, where the"
-	echo "		     run#_info.m file provides information for the run#.nii.gz file."
-	echo "		  3. Missing file values for either the image files or the offset files are indicated with a literal"
-	echo "		     value of EMPTY. So if, for example, there is no offset file available for the 3rd run, the "
-	echo "		     image files and offset files values would be specified as:"
+	echo ""
+	echo "		  1. There should be the same number of behavior files specified as there are image files specified."
+	echo ""
+	echo "		  2. There should be a one-to-one correspondence between the image files and the behavior files."
+	echo "		     For example, if the image files are: "
+	echo ""
+	echo "		       run1.nii.gz@run2.nii.gz@run3.nii.gz"
+	echo ""
+	echo "		     then the corresponding behavior files would be specified something like: "
+	echo ""
+	echo "		       run1_behavior.xml@run2_behavior.xml@run3_behavior.xml"
+	echo ""
+	echo "		     where the run#_behavior.xml file provides behavior information for the run#.nii.gz file."
+	echo ""
+	echo "		  3. Missing file values for either the image files or the behavior files should be indicated with"
+	echo "		     a literal value of EMPTY. For example, if there is no behavior file available for the 3rd run,"
+	echo "		     the image files and behavior files values would be specified as:"
 	echo ""
 	echo "		     --image-files=run1.nii.gz@run2.nii.gz@run3.nii.gz"
-	echo "		     --offset-files=run1_info.m@run2_info.m@EMPTY"
+	echo "		     --behavior-files=run1_behavior.xml@run2_behavior.xml@EMPTY"
 	echo ""
 	echo "	Exit Status Code:"
 	echo ""
@@ -115,10 +124,10 @@ usage() {
 # Global output variables
 #	${userid} - input - user login id
 #	${subject} - input - subject id
-#	${stimulus_location_file} - input - file containing information about stimuli presented
+#	${movie_files} - input - @ symbol separated list of movie files (QuickTime files) used as stimuli for the 
+#	                         retinotopy task
 #	${image_files} - input - @ symbol separated list of minimally preprocessed functional (fMRI) image files
-#	${offset_files} - input - @ symbol separated list of behavioral files from which time offsets can be obtained
-#
+#	${behavior_files} - input - @ symbol separated list of behavior files from which time offsets can be obtained
 #
 get_options() {
 	local scriptName=$(basename ${0})
@@ -128,9 +137,9 @@ get_options() {
 	unset userid
 	userid=`whoami`
 	unset subject
-	unset stimulus_location_file
+	unset movie_files
 	unset image_files
-	unset offset_files
+	unset behavior_files
 	
 	# parse arguments
 	local index=0
@@ -157,16 +166,16 @@ get_options() {
 				subject=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--stimulus-location-file=*)
-				stimulus_location_file=${argument/*=/""}
+			--movie-files=*)
+				movie_files=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--image-files=*)
 				image_files=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
-			--offset-files=*)
-				offset_files=${argument/*=/""}
+			--behavior-files=*)
+				behavior_files=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			*)
@@ -190,9 +199,9 @@ get_options() {
 		exit 1
 	fi
 
-	if [ -z ${stimulus_location_file} ]; then
+	if [ -z ${movie_files} ]; then
 		usage
-		echo "ERROR: <stimulus location file> not specified"
+		echo "ERROR: <movie files> not specified"
 		exit 1
 	fi
 	
@@ -202,9 +211,9 @@ get_options() {
 		exit 1
 	fi
 	
-	if [ -z ${offset_files} ]; then
+	if [ -z ${behavior_files} ]; then
 		usage
-		echo "ERROR: <offset files> not specified"
+		echo "ERROR: <behavior files> not specified"
 		exit 1
 	fi
 	
@@ -212,9 +221,9 @@ get_options() {
 	echo "-- ${scriptName}: Specified Command-line Options - Start --"
 	echo "   userid: ${userid}"
 	echo "   subject: ${subject}"
-	echo "   stimulus_location_file: ${stimulus_location_file}"
+	echo "   movie_files: ${movie_files}"
 	echo "   image_files: ${image_files}"
-	echo "   offset_files: ${offset_files}"
+	echo "   behavior_files: ${behavior_files}"
 	echo "-- ${scriptName}: Specified Command-line Options - End --"
 }
 
@@ -223,71 +232,116 @@ get_options() {
 #	Main processing of script
 #
 main() {
+	local scriptName=$(basename ${0})
 	# Get Command Line Options
 	#
 	# Global Variables Set
 	#	${userid} - input - user login id
 	#	${subject} - input - subject id
-	#	${stimulus_location_file} - input - file containing information about stimuli presented
+	#	${movie_files} - input - @ symbol separated list of movie files (QuickTime files) used as stimuli for the
+	#	                         retinotopy task
 	#	${image_files} - input - @ symbol separated list of minimally preprocessed functional (fMRI) image files
-	#	${offset_files} - input - @ symbol separated list of behavioral files from which time offsets can be obtained
+	#	${behavior_files} - input - @ symbol separated list of behavior files from which time offsets can be obtained
 	get_options $@
 	
-	# break specified image files into an array so they can be accessed via an index variable
-	# first create a space separated list, then populate an array
+	# Break specified movie files into an array so they can be accessed via an index variable.
+	# First create a space separted list, then populate an array.
+	#
+	# After these steps, we will have the movie file names in an array named movie_files_array. The elements of that
+	# array will be accessible using the notation ${movie_files_array[0]}, ${movie_files_array[1]}, 
+	# ${movie_files_array[2]}, etc. The length of the array will be stored in ${movie_files_array_length}
+	movie_files_list=`echo ${movie_files} | sed 's/@/ /g'`
+	movie_files_array=($movie_files_list)
+	movie_files_array_length=${#movie_files_array[@]}	
+
+	# Break specified image files into an array so they can be accessed via an index variable.
+	# First create a space separated list, then populate an array.
+	#
+	# After these steps, we will have the image file names in an array named image_files_array. The elements of that
+	# array will be accessible using the notation ${image_files_array[0]}, ${image_files_array[1]},
+	# ${image_files_array[2]}, etc. The length of the array will be stored in ${image_files_array_length}
 	image_files_list=`echo ${image_files} | sed 's/@/ /g'`
 	image_files_array=($image_files_list)
 	image_files_array_length=${#image_files_array[@]}
 
-	# break specified offset fiiles into an array so they can be accessed via an index variable
-	# first create a space separated list, then populate an array
-	offset_files_list=`echo ${offset_files} | sed 's/@/ /g'`
-	offset_files_array=($offset_files_list)
-	offset_files_array_length=${#offset_files_array[@]}
-		
-	# We now have the image files in an array named image_files_array. The elements of that array can be accessed
-	# using the notation ${image_files_array[0]}, ${image_files_array[1]}, ${image_files_array[2]}, etc.
-	# The length of the array is stored in ${image_files_array_length}
+	# Break specified behavior files into an array so they can be accessed via an index variable.
+	# First create a space separated list, then populate an array.
+	#
+	# After these steps, we will have the behavior file names in an array named behavior_files_array. The elements of
+	# that array can be accessed using the notation ${behavior_files_array[0]}, ${behavior_files_array[1]},
+	# ${behavior_files_array[2]}, etc. The length of the array will be stored in ${behavior_files_array_length}
+	behavior_files_list=`echo ${behavior_files} | sed 's/@/ /g'`
+	behavior_files_array=($behavior_files_list)
+	behavior_files_array_length=${#behavior_files_array[@]}
 
-	# We now have the offset files in an array named offset_files_array. The elements of that array can be accessed
-	# using the notation ${offset_files_array[0]}, ${offset_files_array[1]}, ${offset_files_array[2]}, etc.
-	# The length of the array is stored in ${offset_files_array_length}
-
-	# Verify that the two arrays are the same length
-	if [[ ${image_files_array_length} -ne ${offset_files_array_length} ]] ; then
+	# Verify that the image_files_array and the behavior_files_array are the same length
+	if [[ ${image_files_array_length} -ne ${behavior_files_array_length} ]] ; then
 		echo "ERROR: Specified number of image files: ${image_files_array_length}"
-		echo "ERROR: Specified number of offset files: ${offset_files_array_length}"
-		echo "ERROR: Must have the same number of image files and offset files"
+		echo "ERROR: Specified number of behavior files: ${behavior_files_array_length}"
+		echo "ERROR: Must have the same number of image files and behavior files"
 		exit 1
 	fi
 
-	# Just for demostration, show the image and offset files
+	# Build the Matlab movie files specification. For logging and debugging purposes show each movie file name
 	echo ""
+	echo "${scriptName}: Specified movie files"
 	echo ""
-	echo "Specified image and offset files"
+	
+	movie_count=0
+	matlab_movies_spec="movie_files = {"
+	while [ ${movie_count} -lt ${movie_files_array_length} ] ; do
+		spacer=""
+		if [ ${movie_count} -ne "0" ] ; then
+			spacer=" "
+		fi
+		matlab_movies_spec="${matlab_movies_spec}${spacer}'${movie_files_array[movie_count]}'"
+		echo "${movie_count}: ${movie_files_array[movie_count]}"
+		movie_count=$(( movie_count + 1 ))
+	done
+	matlab_movies_spec="${matlab_movies_spec}}"
+
+	echo ""
+	echo "${scriptName}: matlab_movies_spec: ${matlab_movies_spec}"
+	
+	# Build the Matlab image and behavior files specifications. For logging and debugging purposes, show each
+	# image file and behavior file name
+	echo ""
+	echo "${scriptName}: Specified image and behavior files"
 	echo ""
 	
 	image_count=0
+	matlab_image_files_spec="image_files = {"
+	matlab_behavior_files_spec="behavior_files = {"
 	while [ ${image_count} -lt ${image_files_array_length} ] ; do
-		echo "${image_count}: ${image_files_array[image_count]}   ${offset_files_array[image_count]}"
+		spacer=""
+		if [ ${image_count} -ne "0" ] ; then
+			spacer=" "
+		fi
+		matlab_image_files_spec="${matlab_image_files_spec}${spacer}'${image_files_array[image_count]}'"
+		matlab_behavior_files_spec="${matlab_behavior_files_spec}${spacer}'${behavior_files_array[image_count]}'"
+		echo "${image_count}: ${image_files_array[image_count]}   ${behavior_files_array[image_count]}"
 		image_count=$(( image_count + 1 ))
 	done
+	matlab_image_files_spec="${matlab_image_files_spec}}"
+	matlab_behavior_files_spec="${matlab_behavior_files_spec}}"
 	
 	echo ""
-	echo ""
+	echo "${scriptName}: matlab_image_files_spec: ${matlab_image_files_spec}"
+	echo "${scriptName}: matlab_behavior_files_spec: ${matlab_behavior_files_spec}"
 	
-	#
-	# TODO - this is where you put the actual work
-	#
+	# Create Matlab input variables file
+	cat <<EOF > ${subject}_matlab_variables.txt
+userid = '${userid}';
+subject = ${subject};
+${matlab_movies_spec};
+${matlab_image_files_spec};
+${matlab_behavior_files_spec};
+EOF
 
-
-
-
-
-
-
-
-
+	# Run a compiled Matlab script, passing it the variables file we just created
+	export MCR_CACHE_ROOT=/tmp
+	export MATLAB_HOME="/export/matlab/R2012b"
+	./run_RetinotopyAnalysis.sh ${MATLAB_HOME}/MCR ${subject}_matlab_variables.txt
 }
 
 #
