@@ -64,7 +64,7 @@ show_version() {
 usage() {
 	local scriptName=$(basename ${0})
 	echo ""
-	echo "	Perform Retinotophy Analysis ... TO BE WRITTEN"
+	echo "	Perform Retinotopy Analysis ... TO BE WRITTEN"
 	echo ""
 	echo "	Usage: ${scriptName} <options>"
 	echo ""
@@ -341,7 +341,7 @@ EOF
 	# Run a compiled Matlab script, passing it the variables file we just created
 	export MCR_CACHE_ROOT=/tmp
 	export MATLAB_HOME="/export/matlab/R2012b"
-	./run_RetinotopyAnalysis.sh ${MATLAB_HOME}/MCR ${subject}_matlab_variables.txt
+	~/mcc/run_RetinotopyAnalysis.sh ${MATLAB_HOME}/MCR ${subject}_matlab_variables.txt
 }
 
 #
