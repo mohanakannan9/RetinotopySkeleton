@@ -80,7 +80,8 @@ usage() {
 	echo "		: id of subject for the data being processed"
 	echo ""
 	echo "		--movie-files=<file-list>"
-	echo "		: @ symbol separated list of movie files (QuickTime files) used as stimuli for the retinotopy task"
+    echo "		: @ symbol separated list of movie files used as stimuli for the retinotopy task"
+    echo "      Expects Quicktime .mov files, Matlab .mat files, or .hdf5
 	echo ""
 	echo "		--image-files=<file-list>"
 	echo "		: @ symbol separated list of minimally preprocessed functional \(fMRI\) image files"
@@ -124,7 +125,7 @@ usage() {
 # Global output variables
 #	${userid} - input - user login id
 #	${subject} - input - subject id
-#	${movie_files} - input - @ symbol separated list of movie files (QuickTime files) used as stimuli for the 
+#	${movie_files} - input - @ symbol separated list of movie files (mov,mat,or hdf5) used as stimuli for the
 #	                         retinotopy task
 #	${image_files} - input - @ symbol separated list of minimally preprocessed functional (fMRI) image files
 #	${behavior_files} - input - @ symbol separated list of behavior files from which time offsets can be obtained
@@ -238,7 +239,7 @@ main() {
 	# Global Variables Set
 	#	${userid} - input - user login id
 	#	${subject} - input - subject id
-	#	${movie_files} - input - @ symbol separated list of movie files (QuickTime files) used as stimuli for the
+	#	${movie_files} - input - @ symbol separated list of movie files (mov,mat,or hdf5) used as stimuli for the
 	#	                         retinotopy task
 	#	${image_files} - input - @ symbol separated list of minimally preprocessed functional (fMRI) image files
 	#	${behavior_files} - input - @ symbol separated list of behavior files from which time offsets can be obtained

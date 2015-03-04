@@ -80,15 +80,23 @@ try
   % load stimuli
   stimulus = {};  % each element is 200 x 200 x 300, single format
   for p=1:length(movie_files)
-    a1 = load(movie_files{p});
-    stimulus{p} = a1.stim;
+    [~,~,ext]=fileparts(movie_files{p});
+    switch lower(ext)
+        case '.mat'
+            a1 = load(movie_files{p});
+            stimulus{p} = a1.stim;
+            clear a1;
+        case '.hdf5'
+            stimulus{p} = hdf5read(movie_files{p},'/stim');
+        case '.mov'
+            mobj = VideoReader(movie_files{p});
+            stim0 = read(mobj);
+            stimulus{p} = permute(single(stim0(:,:,1,:)),[1 2 4 3]);
+            clear mobj stim0;
+        otherwise
+            error('Unknown movie file type: %s\n',movie_files{p});
+    end
   end
-  clear a1;
-          % ALTERNATIVE:
-          %     mobj = VideoReader(movie_files{p});
-          %     stim0 = read(mobj);
-          %     stimulus{p} = permute(single(stim0(:,:,1,:)),[1 2 4 3]);
-          %   clear stim0;
 
   % sanity check
   assert(length(stimulus)==5);
@@ -105,7 +113,7 @@ try
       behaviors{p} = [];
     else
       a1 = xml2struct(behavior_files{p});  % relevant fields: expttype (1-5), ttlStamps
-      behaviors{p} = a1.ret_summary;
+      behaviors{p} = a1.behav_summary;
     end
   end
   clear a1;
