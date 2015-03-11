@@ -22,6 +22,15 @@ function RetinotopyAnalysis(inputfile)
 % Regarding the image and behavior files, it is assumed that the number of both
 % types of files is the same, that there is a one-to-one correspondence between
 % the files, and that missing files are indicated by the string 'EMPTY'.
+%
+% If the image files have fewer than the expected number of time points, we assume
+% that these missing time points occur at the end of the run.  To handle these cases,
+% we just truncate the corresponding stimulus sequence before performing the actual
+% analysis.
+%
+% history:
+% - 2015/03/11 - handle the case of data truncation; flexible format for loading the
+%                stimulus files; rename 'ret_summary' to 'behav_summary'.
 
 % wrap everything in a try-catch to ensure that MATLAB will exit
 try
@@ -80,15 +89,23 @@ try
   % load stimuli
   stimulus = {};  % each element is 200 x 200 x 300, single format
   for p=1:length(movie_files)
-    a1 = load(movie_files{p});
-    stimulus{p} = a1.stim;
+    [~,~,ext] = fileparts(movie_files{p});
+    switch lower(ext)
+    case '.mat'
+      a1 = load(movie_files{p});
+      stimulus{p} = a1.stim;
+      clear a1;
+    case '.hdf5'
+      stimulus{p} = h5read(movie_files{p},'/stim');
+    case '.mov'
+      mobj = VideoReader(movie_files{p});
+      stim0 = read(mobj);
+      stimulus{p} = permute(single(stim0(:,:,1,:)),[1 2 4 3]);
+      clear mobj stim0;
+    otherwise
+      error('Unknown movie file type: %s\n',movie_files{p});
+    end
   end
-  clear a1;
-          % ALTERNATIVE:
-          %     mobj = VideoReader(movie_files{p});
-          %     stim0 = read(mobj);
-          %     stimulus{p} = permute(single(stim0(:,:,1,:)),[1 2 4 3]);
-          %   clear stim0;
 
   % sanity check
   assert(length(stimulus)==5);
@@ -105,7 +122,7 @@ try
       behaviors{p} = [];
     else
       a1 = xml2struct(behavior_files{p});  % relevant fields: expttype (1-5), ttlStamps
-      behaviors{p} = a1.ret_summary;
+      behaviors{p} = a1.behav_summary;
     end
   end
   clear a1;
@@ -170,6 +187,16 @@ try
 
     end
 
+  end
+
+  %%%%% DEAL WITH TRUNCATED DATA
+  
+  % we might be missing some data points at the end of a given run.
+  % in such cases, just truncate the stimulus sequence to match the data.
+  for p=1:length(data)
+    if size(data{p},2) < size(finalstimulus{p},3)
+      finalstimulus{p} = finalstimulus{p}(:,:,1:size(data{p},2));
+    end
   end
 
   %%%%% FINALLY, ANALYZE THE DATA
