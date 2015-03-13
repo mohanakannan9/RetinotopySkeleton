@@ -79,9 +79,15 @@ usage() {
 	echo "		--subject=<subject-id>"
 	echo "		: id of subject for the data being processed"
 	echo ""
+	echo "		--outpath=<outpath>"
+	echo "		: Path to parent folder within which results folder would be created"
+	echo ""
+	echo "		--dummy_file=<dummy_file>"
+	echo "		: Path to dummy file"
+	echo ""
 	echo "		--movie-files=<file-list>"
   echo "		: @ symbol separated list of movie files used as stimuli for the retinotopy task"
-  echo "      Expects Quicktime .mov files, Matlab .mat files, or .hdf5
+  echo "      Expects Quicktime .mov files, Matlab .mat files, or .hdf5"
 	echo ""
 	echo "		--image-files=<file-list>"
 	echo "		: @ symbol separated list of minimally preprocessed functional \(fMRI\) image files"
@@ -125,6 +131,8 @@ usage() {
 # Global output variables
 #	${userid} - input - user login id
 #	${subject} - input - subject id
+#	${outpath} - input - path for the results folders
+#	${dummy_file} - input - path to dummy file
 #	${movie_files} - input - @ symbol separated list of movie files (mov,mat,or hdf5) used as stimuli for the
 #	                         retinotopy task
 #	${image_files} - input - @ symbol separated list of minimally preprocessed functional (fMRI) image files
@@ -138,6 +146,8 @@ get_options() {
 	unset userid
 	userid=`whoami`
 	unset subject
+	unset outpath
+	unset dummy_file
 	unset movie_files
 	unset image_files
 	unset behavior_files
@@ -165,6 +175,14 @@ get_options() {
 				;;
 			--subject=*)
 				subject=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--outpath=*)
+				outpath=${argument/*=/""}
+				index=$(( index + 1 ))
+				;;
+			--dummy_file=*)
+				dummy_file=${argument/*=/""}
 				index=$(( index + 1 ))
 				;;
 			--movie-files=*)
@@ -200,6 +218,19 @@ get_options() {
 		exit 1
 	fi
 
+	if [ -z ${outpath} ]; then
+		usage
+		echo "ERROR: <outpath> not specified"
+		exit 1
+	fi
+
+	if [ -z ${dummy_file} ]; then
+		usage
+		echo "ERROR: <dummy_file> not specified"
+		exit 1
+	fi
+
+
 	if [ -z ${movie_files} ]; then
 		usage
 		echo "ERROR: <movie files> not specified"
@@ -222,6 +253,8 @@ get_options() {
 	echo "-- ${scriptName}: Specified Command-line Options - Start --"
 	echo "   userid: ${userid}"
 	echo "   subject: ${subject}"
+	echo "   outpath: ${outpath}"
+	echo "   dummy_file: ${dummy_file}"
 	echo "   movie_files: ${movie_files}"
 	echo "   image_files: ${image_files}"
 	echo "   behavior_files: ${behavior_files}"
@@ -239,6 +272,8 @@ main() {
 	# Global Variables Set
 	#	${userid} - input - user login id
 	#	${subject} - input - subject id
+	#	${outpath} - input - path for results folder
+	#	${dummy_file} - input - path to dummy file
 	#	${movie_files} - input - @ symbol separated list of movie files (mov,mat,or hdf5) used as stimuli for the
 	#	                         retinotopy task
 	#	${image_files} - input - @ symbol separated list of minimally preprocessed functional (fMRI) image files
@@ -301,7 +336,7 @@ main() {
 	done
 	matlab_movies_spec="${matlab_movies_spec}}"
 
-	echo ""
+	echo "" 
 	echo "${scriptName}: matlab_movies_spec: ${matlab_movies_spec}"
 	
 	# Build the Matlab image and behavior files specifications. For logging and debugging purposes, show each
@@ -334,15 +369,17 @@ main() {
 	cat <<EOF > ${subject}_matlab_variables.txt
 userid = '${userid}';
 subject = ${subject};
+outpath = '${outpath}';
+dummy_file='${dummy_file}';
 ${matlab_movies_spec};
 ${matlab_image_files_spec};
 ${matlab_behavior_files_spec};
 EOF
 
 	# Run a compiled Matlab script, passing it the variables file we just created
-	export MCR_CACHE_ROOT=/tmp
+	export MCR_CACHE_ROOT=/tmp/MCC_CACHE_${USER}
 	export MATLAB_HOME="/export/matlab/R2012b"
-	~/mcc/run_RetinotopyAnalysis.sh ${MATLAB_HOME}/MCR ${subject}_matlab_variables.txt
+	$HCPRETINODIR/mcc/run_RetinotopyAnalysis.sh ${MATLAB_HOME}/MCR ${subject}_matlab_variables.txt
 }
 
 #
