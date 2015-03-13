@@ -6,6 +6,8 @@ function RetinotopyAnalysis(inputfile)
 % to define the following variables:
 %   <userid> is a string
 %   <subject> is a positive integer
+%   <outpath> is a string 
+%   <dummy_file> is a string 
 %   <movie_files> is a cell vector of .mat files.  there should be 5 of them.
 %   <image_files> is a cell vector of minimally pre-processed CIFTI files
 %   <behavior_files> is a cell vector of behavioral XML files
@@ -16,7 +18,7 @@ function RetinotopyAnalysis(inputfile)
 %     Default: 0.
 %
 % Analyze the data and write outputs to:
-%   results/<subject>_XXX.dtseries.nii
+%   outpath/results/<subject>_XXX.dtseries.nii
 % where XXX is the name of a quantity (e.g. angle).
 %
 % Regarding the image and behavior files, it is assumed that the number of both
@@ -57,7 +59,7 @@ try
   tr = 1;                % seconds
   stimres = 200;         % number of pixels along each dimension of the stimulus
   maxiter = 100;         % maximum number of iterations
-  dummycifti = '~/dummy.dtseries.nii';   % dummy CIFTI file
+  dummycifti = dummy_file;   % dummy CIFTI file
 
   % calc
   stimdeg = atan(widthofstim/2/viewingdistance)/pi*180*2;  % stimulus diameter in degrees 
@@ -212,13 +214,13 @@ try
   mkdirquiet('results');
 
   % write out results
-  writecifti(results.ang,                               sprintf('results/%d_angle.dtseries.nii',subject));
-  writecifti(results.ecc*pxtodeg,                       sprintf('results/%d_eccentricity.dtseries.nii',subject));
-  writecifti(results.rfsize*pxtodeg,                    sprintf('results/%d_size.dtseries.nii',subject));
-  writecifti(results.expt,                              sprintf('results/%d_exponent.dtseries.nii',subject));
-  writecifti(results.gain./results.meanvol*100,         sprintf('results/%d_gain.dtseries.nii',subject));
-  writecifti(results.R2,                                sprintf('results/%d_varianceexplained.dtseries.nii',subject));
-  writecifti(results.meanvol,                           sprintf('results/%d_mean.dtseries.nii',subject));
+  writecifti(results.ang,                               sprintf('%s/results/%d_angle.dtseries.nii',outpath,subject));
+  writecifti(results.ecc*pxtodeg,                       sprintf('%s/results/%d_eccentricity.dtseries.nii',outpath,subject));
+  writecifti(results.rfsize*pxtodeg,                    sprintf('%s/results/%d_size.dtseries.nii',outpath,subject));
+  writecifti(results.expt,                              sprintf('%s/results/%d_exponent.dtseries.nii',outpath,subject));
+  writecifti(results.gain./results.meanvol*100,         sprintf('%s/results/%d_gain.dtseries.nii',outpath,subject));
+  writecifti(results.R2,                                sprintf('%s/results/%d_varianceexplained.dtseries.nii',outpath,subject));
+  writecifti(results.meanvol,                           sprintf('%s/results/%d_mean.dtseries.nii',outpath,subject));
 
 catch me
 
