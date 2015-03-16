@@ -58,7 +58,7 @@ end
 
 % save caller's workspace to the special .mat file
 fprintf('saving workspace to disk...');
-evalin('caller',sprintf('saveexcept(''~/mcc/job_%s.mat'',%s);',jobname,cell2str(varstoexclude)));
+evalin('caller',sprintf('saveexcept(''$HCPRETINODIR/mcc/job_%s.mat'',%s);',jobname,cell2str(varstoexclude)));
 fprintf('done.\n');
 
 % do in chunks
@@ -92,7 +92,7 @@ for zz=1:totalchunks
 
   beginix0 = (zz-1)*jobchunk + beginix;
   endix0 = min(beginix0 + jobchunk - 1,endix);
-  cmd = sprintf('qsub -t %d-%d -v MYSCRIPT="%s",MYARG1="~/mcc/job_%s.mat",MYARG2="%d" -N job_%s -o ~/sgeoutput/job_%s.o -e ~/sgeoutput/job_%s.e %s ~/mcc/matlabsge.sh', ...
+  cmd = sprintf('qsub -t %d-%d -v MYSCRIPT="%s",MYARG1="$HCPRETINODIR/mcc/job_%s.mat",MYARG2="%d" -N job_%s -o ~/sgeoutput/job_%s.o -e ~/sgeoutput/job_%s.e %s $HCPRETINODIR/mcc/matlabsge.sh', ...
     beginix0,endix0,scriptname,jobname,numvxs,jobname,jobname,jobname,flags);
   fprintf('this is the qsub command:\n\n%s\n\n',cmd);
   fprintf('issuing the qsub command on chpc...');
