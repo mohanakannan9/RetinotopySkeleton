@@ -324,7 +324,7 @@ else
 
     % record additional files to delete
     filestodelete{end+1} = sprintf('~/sgeoutput/job_%s.*',jobname);  % .o and .e files
-    filestodelete{end+1} = sprintf('$HCPRETINODIR/mcc/job_%s.mat',jobname);
+    filestodelete{end+1} = sprintf('~/mcc/job_%s.mat',jobname);
 
     % wait for jobs to finish
     CHPCwait(jobname,jobids,userid);
