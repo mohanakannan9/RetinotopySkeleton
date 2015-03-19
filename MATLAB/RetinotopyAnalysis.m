@@ -211,7 +211,7 @@ try
   %%%%% MASSAGE THE OUTPUTS AND WRITE TO DISK
 
   % make the output directory
-  mkdirquiet('results');
+  mkdirquiet([outpath '/results']);
 
   % write out results
   writecifti(results.ang,                               sprintf('%s/results/%d_angle.dtseries.nii',outpath,subject));
