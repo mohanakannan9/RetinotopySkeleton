@@ -42,8 +42,8 @@ try
   %%%%% SETUP
   
   % internal constants
-  viewingdistance = 39;  % inches
-  widthofstim = 15;      % inches
+  viewingdistance = 101.5;  % cm
+  widthofstim = 28.5;      % cm
   wbcmd = 'wb_command';  % workbench command
   tr = 1;                % seconds
   stimres = 200;         % number of pixels along each dimension of the stimulus
