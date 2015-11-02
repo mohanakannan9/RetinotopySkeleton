@@ -93,19 +93,19 @@ try
   for p=1:length(movie_files)
     [~,~,ext] = fileparts(movie_files{p});
     switch lower(ext)
-    case '.mat'
-      a1 = load(movie_files{p});
-      stimulus{p} = a1.stim;
-      clear a1;
-    case '.hdf5'
-      stimulus{p} = h5read(movie_files{p},'/stim');
-    case '.mov'
-      mobj = VideoReader(movie_files{p});
-      stim0 = read(mobj);
-      stimulus{p} = permute(single(stim0(:,:,1,:)),[1 2 4 3]);
-      clear mobj stim0;
-    otherwise
-      error('Unknown movie file type: %s\n',movie_files{p});
+        case '.mat'
+            a1 = load(movie_files{p});
+            stimulus{p} = a1.stim;
+            clear a1;
+        case '.hdf5'
+            stimulus{p} = hdf5read(movie_files{p},'/stim');
+        case '.mov'
+            mobj = VideoReader(movie_files{p});
+            stim0 = read(mobj);
+            stimulus{p} = permute(single(stim0(:,:,1,:)),[1 2 4 3]);
+            clear mobj stim0;
+        otherwise
+            error('Unknown movie file type: %s\n',movie_files{p});
     end
   end
 

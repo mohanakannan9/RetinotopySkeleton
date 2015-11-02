@@ -86,8 +86,8 @@ usage() {
 	echo "		: Path to dummy file"
 	echo ""
 	echo "		--movie-files=<file-list>"
-  echo "		: @ symbol separated list of movie files used as stimuli for the retinotopy task"
-  echo "      Expects Quicktime .mov files, Matlab .mat files, or .hdf5"
+	echo "		: @ symbol separated list of movie files used as stimuli for the retinotopy task"
+	echo "      Expects Quicktime .mov files, Matlab .mat files, or .hdf5
 	echo ""
 	echo "		--image-files=<file-list>"
 	echo "		: @ symbol separated list of minimally preprocessed functional \(fMRI\) image files"
